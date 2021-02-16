@@ -1,6 +1,8 @@
 #pragma once
 #include <glm/glm.hpp>
 
+namespace ltc {
+
 class Brdf {
 public:
     // evaluation of the cosine-weighted BRDF
@@ -10,3 +12,5 @@ public:
     // sampling
     virtual glm::vec3 sample(const glm::vec3& V, const float alpha, const float U1, const float U2) const = 0;
 };
+
+}

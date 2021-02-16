@@ -1,5 +1,10 @@
 #pragma once
+// export data to DDS
+#include "dds.h"
+#include "float_to_half.h"
 #include <vector>
+
+namespace ltc {
 
 // export data to C
 void writeTabC(glm::mat3* tab, glm::vec2* tabMagFresnel, int N)
@@ -96,10 +101,6 @@ void writeTabMatlab(glm::mat3* tab, glm::vec2* tabMagFresnel, int N)
     file.close();
 }
 
-// export data to DDS
-#include "dds.h"
-#include "float_to_half.h"
-
 void writeDDS(const char* path, float* data, int N)
 {
     int numTerms = N * N * 4;
@@ -145,4 +146,6 @@ void writeJS(glm::vec4* data1, glm::vec4* data2, int N)
     file << "];" << std::endl;
 
     file.close();
+}
+
 }

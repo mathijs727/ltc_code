@@ -27,6 +27,8 @@ const float MIN_ALPHA = 0.00001f;
 
 const float pi = std::acos(-1.0f);
 
+namespace ltc {
+
 // computes
 // * the norm (albedo) of the BRDF
 // * the average Schlick Fresnel value
@@ -359,8 +361,12 @@ void packTab(
     }
 }
 
+}
+
 int main(int argc, char* argv[])
 {
+    using namespace ltc;
+
     // BRDF to fit
     BrdfGGX brdf;
     //BrdfBeckmann brdf;
@@ -393,3 +399,5 @@ int main(int argc, char* argv[])
 
     return 0;
 }
+
+

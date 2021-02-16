@@ -1,6 +1,12 @@
 #pragma once
+#include "LTC.h"
+#include "brdf.h"
 #include <CImg.h>
 #include <glm/glm.hpp>
+#include <iomanip>
+#include <sstream>
+
+namespace ltc {
 
 cimg_library::CImg<float> colorMap(33, 1, 1, 3);
 
@@ -39,9 +45,6 @@ const unsigned char colorMap_data[33 * 3] = {
     192, 40, 47,
     180, 4, 38
 };
-
-#include "LTC.h"
-#include "brdf.h"
 
 class BrdfOrLTC {
 public:
@@ -139,9 +142,6 @@ void spherical_plot(const BrdfOrLTC& brdforltc, const char* filename)
     image.save(filename);
 }
 
-#include <iomanip>
-#include <sstream>
-
 void make_spherical_plots(const Brdf& brdf, const glm::mat3* tab, const int N)
 {
     // init color map texture (for linear interpolation)
@@ -218,4 +218,6 @@ void make_spherical_plots(const Brdf& brdf, const glm::mat3* tab, const int N)
             // plot BRDF
             spherical_plot(BrdfOrLTC(NULL, &brdf, V, alpha), filename_brdf.str().c_str());
         }
+}
+
 }

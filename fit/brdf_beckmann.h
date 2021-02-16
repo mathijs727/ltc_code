@@ -1,6 +1,8 @@
 #pragma once
 #include "brdf.h"
 
+namespace ltc {
+
 class BrdfBeckmann : public Brdf {
 public:
     virtual float eval(const glm::vec3& V, const glm::vec3& L, const float alpha, float& pdf) const
@@ -50,3 +52,5 @@ private:
         return (cosTheta < 1.0f) ? (1.0f - 1.259f * a + 0.396f * a * a) / (3.535f * a + 2.181f * a * a) : 0.0f;
     }
 };
+
+}

@@ -1,5 +1,7 @@
 #pragma once
 
+namespace ltc {
+
 void mov(float* r, const float* v, int dim)
 {
     for (int i = 0; i < dim; ++i)
@@ -132,4 +134,6 @@ float NelderMead(
     // return best point and its value
     mov(pmin, s[lo], DIM);
     return f[lo];
+}
+
 }

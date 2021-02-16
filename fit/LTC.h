@@ -2,6 +2,8 @@
 #include <glm/glm.hpp>
 #include <iostream>
 
+namespace ltc {
+
 struct LTC {
 
     // lobe magnitude
@@ -61,3 +63,5 @@ struct LTC {
         return L;
     }
 };
+
+}

@@ -1,6 +1,8 @@
 #pragma once
 #include "brdf.h"
 
+namespace ltc {
+
 class BrdfDisneyDiffuse : public Brdf {
 public:
     virtual float eval(const glm::vec3& V, const glm::vec3& L, const float alpha, float& pdf) const
@@ -30,3 +32,4 @@ public:
         return L;
     }
 };
+}

@@ -5,6 +5,8 @@
 #include <string.h>
 #include <cstddef>
 
+namespace ltc {
+
 #pragma pack(push, 1)
 struct DDS_PIXELFORMAT
 {
@@ -47,7 +49,7 @@ uint32_t const DDS_RESOURCE_DIMENSION_TEXTURE2D = 3;
 DDS_PIXELFORMAT const DDSPF_RGBA16F = { sizeof(DDS_PIXELFORMAT), DDS_PF_FLAGS_FOURCC, 113, 0, 0, 0, 0, 0 };
 DDS_PIXELFORMAT const DDSPF_RGBA32F = { sizeof(DDS_PIXELFORMAT), DDS_PF_FLAGS_FOURCC, 116, 0, 0, 0, 0, 0 };
 
-DDS_PIXELFORMAT const* GetDDSPixelFormat(PixelFormat format)
+static DDS_PIXELFORMAT const* GetDDSPixelFormat(ltc::PixelFormat format)
 {
     switch (format)
     {
@@ -57,6 +59,7 @@ DDS_PIXELFORMAT const* GetDDSPixelFormat(PixelFormat format)
 
     return nullptr;
 }
+
 
 bool SaveDDS(char const* path, PixelFormat format, unsigned texelSizeInBytes, unsigned width, unsigned height, void const* data)
 {
@@ -88,4 +91,6 @@ bool SaveDDS(char const* path, PixelFormat format, unsigned texelSizeInBytes, un
     fclose(f);
 
     return true;
+}
+
 }
