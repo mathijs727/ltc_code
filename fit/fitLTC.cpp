@@ -19,7 +19,7 @@
 #include "plot.h"
 
 // size of precomputed table (theta, alpha)
-const int N = 16;
+const int N = 64;
 // number of samples used to compute the error during fitting
 const int Nsample = 32;
 // minimal roughness (avoid singularities)
@@ -57,7 +57,7 @@ void computeAvgTerms(const Brdf& brdf, const glm::vec3& V, const float alpha,
 
                 // accumulate
                 norm += weight;
-                fresnel += weight * pow(1.0f - glm::max(dot(V, H), 0.0f), 5.0f);
+                fresnel += weight * std::pow(1.0f - glm::max(glm::dot(V, H), 0.0f), 5.0f);
                 averageDir += weight * L;
             }
         }
@@ -186,10 +186,10 @@ void fitTab(glm::mat3* tab, glm::vec2* tabMagFresnel, const int N, const Brdf& b
     // loop over theta and alpha
     for (int a = N - 1; a >= 0; --a) {
         for (int t = 0; t <= N - 1; ++t) {
-            // parameterised by sqrt(1 - cos(theta))
+            // parameterized by sqrt(1 - cos(theta))
             float x = t / float(N - 1);
             float ct = 1.0f - x * x;
-            float theta = std::min<float>(1.57f, std::acos(ct));
+            float theta = std::min<float>(1.57f, std::acos(ct)); // 1.57 ~= pi/2
             const glm::vec3 V = glm::vec3(std::sin(theta), 0, std::cos(theta));
 
             // alpha = roughness^2

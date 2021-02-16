@@ -30,7 +30,7 @@ public:
         D = D * D;
         D = D / (3.14159f * alpha * alpha * H.z * H.z * H.z * H.z);
 
-        pdf = std::abs(D * H.z / 4.0f / dot(V, H));
+        pdf = std::abs(D * H.z / 4.0f / glm::dot(V, H));
         float res = D * G2 / 4.0f / V.z;
 
         return res;
@@ -41,7 +41,7 @@ public:
         const float phi = 2.0f * 3.14159f * U1;
         const float r = alpha * std::sqrt(U2 / (1.0f - U2));
         const glm::vec3 N = glm::normalize(glm::vec3(r * std::cos(phi), r * std::sin(phi), 1.0f));
-        const glm::vec3 L = -V + 2.0f * N * dot(N, V);
+        const glm::vec3 L = -V + 2.0f * N * glm::dot(N, V);
         return L;
     }
 

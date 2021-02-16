@@ -106,7 +106,7 @@ void spherical_plot(const BrdfOrLTC& brdforltc, const char* filename)
     // camera
     glm::vec3 Z = glm::normalize(glm::vec3(-1, 1, 1));
     glm::vec3 X = glm::normalize(glm::vec3(1, 1, 0));
-    X = glm::normalize(X - Z * dot(X, Z));
+    X = glm::normalize(X - Z * glm::dot(X, Z));
     glm::vec3 Y = -cross(X, Z);
 
     // maximum value of the function (color map scaling)
