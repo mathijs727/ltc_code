@@ -11,9 +11,14 @@ add_executable(LTCFitLib
 	"export.cpp"
 	"export.h"
 	"fitLTC.cpp"
+	"float_to_half.cpp"
 	"float_to_half.h"
+	"LTC.cpp"
 	"LTC.h"
 	"nelder_mead.h"
+	"plot.cpp"
 	"plot.h"
- "export.cpp" "float_to_half.cpp" "LTC.cpp"  "plot.cpp")
-target_link_libraries(LTCFitLib PUBLIC glm CImg::CImg)
+)
+target_link_libraries(LTCFitLib
+	PUBLIC glm CImg::CImg
+	PRIVATE TBB::tbb)
