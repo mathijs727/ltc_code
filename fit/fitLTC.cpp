@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iomanip>
+#include <vector>
 
 #include "LTC.h"
 #include "brdf.h"
@@ -366,36 +367,29 @@ int main(int argc, char* argv[])
     //BrdfDisneyDiffuse brdf;
 
     // allocate data
-    glm::mat3* tab = new glm::mat3[N * N];
-    glm::vec2* tabMagFresnel = new glm::vec2[N * N];
-    float* tabSphere = new float[N * N];
+    std::vector<glm::mat3> tab(N * N);
+    std::vector<glm::vec2> tabMagFresnel(N * N);
+    std::vector<float> tabSphere(N * N);
 
     // fit
-    fitTab(tab, tabMagFresnel, N, brdf);
+    fitTab(tab.data(), tabMagFresnel.data(), N, brdf);
 
     // projected solid angle of a spherical cap, clipped to the horizon
-    genSphereTab(tabSphere, N);
+    genSphereTab(tabSphere.data(), N);
 
     // pack tables (texture representation)
-    glm::vec4* tex1 = new glm::vec4[N * N];
-    glm::vec4* tex2 = new glm::vec4[N * N];
-    packTab(tex1, tex2, tab, tabMagFresnel, tabSphere, N);
+    std::vector<glm::vec4> tex1(N * N);
+    std::vector<glm::vec4> tex2(N * N);
+    packTab(tex1.data(), tex2.data(), tab.data(), tabMagFresnel.data(), tabSphere.data(), N);
 
     // export to C, MATLAB and DDS
-    writeTabMatlab(tab, tabMagFresnel, N);
-    writeTabC(tab, tabMagFresnel, N);
-    writeDDS(tex1, tex2, N);
-    writeJS(tex1, tex2, N);
+    writeTabMatlab(tab.data(), tabMagFresnel.data(), N);
+    writeTabC(tab.data(), tabMagFresnel.data(), N);
+    writeDDS(tex1.data(), tex2.data(), N);
+    writeJS(tex1.data(), tex2.data(), N);
 
     // spherical plots
     // make_spherical_plots(brdf, tab, N);
-
-    // delete data
-    delete[] tab;
-    delete[] tabMagFresnel;
-    delete[] tabSphere;
-    delete[] tex1;
-    delete[] tex2;
 
     return 0;
 }

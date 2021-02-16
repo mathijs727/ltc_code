@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 
 // export data to C
 void writeTabC(glm::mat3* tab, glm::vec2* tabMagFresnel, int N)
@@ -103,15 +104,13 @@ void writeDDS(const char* path, float* data, int N)
 {
     int numTerms = N * N * 4;
 
-    uint16_t* half = new uint16_t[numTerms];
+    std::vector<uint16_t> half(numTerms);
 
     for (int i = 0; i < numTerms; ++i) {
         half[i] = float_to_half_fast(data[i]);
     }
 
-    SaveDDS(path, DDS_FORMAT_R16G16B16A16_FLOAT, sizeof(uint16_t) * 4, N, N, (void const*)half);
-
-    delete[] half;
+    SaveDDS(path, DDS_FORMAT_R16G16B16A16_FLOAT, sizeof(uint16_t) * 4, N, N, (void const*)half.data());
 }
 
 void writeDDS(glm::vec4* data1, glm::vec4* data2, int N)
