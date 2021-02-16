@@ -1,22 +1,19 @@
 // fitLTC.cpp : Defines the entry point for the console application.
 //
-#include <glm/glm.hpp>
-
-#include <algorithm>
-#include <fstream>
-#include <iomanip>
-#include <vector>
-
 #include "LTC.h"
 #include "brdf.h"
 #include "brdf_beckmann.h"
-#include "brdf_disneyDiffuse.h"
+#include "brdf_disney_diffuse.h"
 #include "brdf_ggx.h"
-
-#include "nelder_mead.h"
-
 #include "export.h"
+#include "nelder_mead.h"
 #include "plot.h"
+#include <algorithm>
+#include <cmath>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <vector>
 
 // size of precomputed table (theta, alpha)
 const int N = 64;
@@ -399,5 +396,3 @@ int main(int argc, char* argv[])
 
     return 0;
 }
-
-
