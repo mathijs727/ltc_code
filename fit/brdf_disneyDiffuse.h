@@ -1,6 +1,4 @@
-#ifndef _BRDF_DISNEY_DIFFUSE_
-#define _BRDF_DISNEY_DIFFUSE_
-
+#pragma once
 #include "brdf.h"
 
 class BrdfDisneyDiffuse : public Brdf {
@@ -32,5 +30,3 @@ public:
         return L;
     }
 };
-
-#endif

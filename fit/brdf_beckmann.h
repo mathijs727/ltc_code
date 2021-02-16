@@ -1,6 +1,4 @@
-#ifndef _BRDF_BECKMANN_
-#define _BRDF_BECKMANN_
-
+#pragma once
 #include "brdf.h"
 
 class BrdfBeckmann : public Brdf {
@@ -52,5 +50,3 @@ private:
         return (cosTheta < 1.0f) ? (1.0f - 1.259f * a + 0.396f * a * a) / (3.535f * a + 2.181f * a * a) : 0.0f;
     }
 };
-
-#endif

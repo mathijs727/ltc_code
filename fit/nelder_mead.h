@@ -1,5 +1,4 @@
-#ifndef NELDER_MEAD_H
-#define NELDER_MEAD_H
+#pragma once
 
 void mov(float* r, const float* v, int dim)
 {
@@ -134,5 +133,3 @@ float NelderMead(
     mov(pmin, s[lo], DIM);
     return f[lo];
 }
-
-#endif // NELDER_MEAD_H

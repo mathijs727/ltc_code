@@ -1,6 +1,4 @@
-#ifndef _BRDF_GGX_
-#define _BRDF_GGX_
-
+#pragma once
 #include "brdf.h"
 
 class BrdfGGX : public Brdf {
@@ -54,5 +52,3 @@ private:
         return (cosTheta < 1.0f) ? 0.5f * (-1.0f + std::sqrt(1.0f + 1.0f / a / a)) : 0.0f;
     }
 };
-
-#endif

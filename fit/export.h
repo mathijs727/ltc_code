@@ -1,5 +1,4 @@
-#ifndef _EXPORT_
-#define _EXPORT_
+#pragma once
 
 // export data to C
 void writeTabC(glm::mat3* tab, glm::vec2* tabMagFresnel, int N)
@@ -148,5 +147,3 @@ void writeJS(glm::vec4* data1, glm::vec4* data2, int N)
 
     file.close();
 }
-
-#endif

@@ -1,8 +1,5 @@
-#ifndef _LTC_
-#define _LTC_
-
+#pragma once
 #include <glm/glm.hpp>
-
 #include <iostream>
 
 struct LTC {
@@ -64,5 +61,3 @@ struct LTC {
         return L;
     }
 };
-
-#endif

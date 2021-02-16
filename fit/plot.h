@@ -1,6 +1,4 @@
-#ifndef _PLOT_
-#define _PLOT_
-
+#pragma once
 #include <CImg.h>
 #include <glm/glm.hpp>
 
@@ -221,5 +219,3 @@ void make_spherical_plots(const Brdf& brdf, const glm::mat3* tab, const int N)
             spherical_plot(BrdfOrLTC(NULL, &brdf, V, alpha), filename_brdf.str().c_str());
         }
 }
-
-#endif
