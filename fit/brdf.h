@@ -3,9 +3,7 @@
 
 #include <glm/glm.hpp>
 
-
-class Brdf
-{
+class Brdf {
 public:
     // evaluation of the cosine-weighted BRDF
     // pdf is set to the PDF of sampling L

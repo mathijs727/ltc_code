@@ -3,13 +3,11 @@
 
 #include "brdf.h"
 
-class BrdfGGX : public Brdf
-{
+class BrdfGGX : public Brdf {
 public:
     virtual float eval(const glm::vec3& V, const glm::vec3& L, const float alpha, float& pdf) const
     {
-        if (V.z <= 0)
-        {
+        if (V.z <= 0) {
             pdf = 0;
             return 0;
         }
@@ -21,21 +19,20 @@ public:
         float G2;
         if (L.z <= 0.0f)
             G2 = 0;
-        else
-        {
+        else {
             const float LambdaL = lambda(alpha, L.z);
-            G2 = 1.0f/(1.0f + LambdaV + LambdaL);
+            G2 = 1.0f / (1.0f + LambdaV + LambdaL);
         }
 
         // D
         const glm::vec3 H = glm::normalize(V + L);
-        const float slopex = H.x/H.z;
-        const float slopey = H.y/H.z;
-        float D = 1.0f / (1.0f + (slopex*slopex + slopey*slopey)/alpha/alpha);
-        D = D*D;
-        D = D/(3.14159f * alpha*alpha * H.z*H.z*H.z*H.z);
+        const float slopex = H.x / H.z;
+        const float slopey = H.y / H.z;
+        float D = 1.0f / (1.0f + (slopex * slopex + slopey * slopey) / alpha / alpha);
+        D = D * D;
+        D = D / (3.14159f * alpha * alpha * H.z * H.z * H.z * H.z);
 
-        pdf = fabsf(D * H.z / 4.0f / dot(V, H));
+        pdf = std::abs(D * H.z / 4.0f / dot(V, H));
         float res = D * G2 / 4.0f / V.z;
 
         return res;
@@ -43,9 +40,9 @@ public:
 
     virtual glm::vec3 sample(const glm::vec3& V, const float alpha, const float U1, const float U2) const
     {
-        const float phi = 2.0f*3.14159f * U1;
-        const float r = alpha*std::sqrt(U2/(1.0f - U2));
-        const glm::vec3 N = glm::normalize(glm::vec3(r*std::cos(phi), r*std::sin(phi), 1.0f));
+        const float phi = 2.0f * 3.14159f * U1;
+        const float r = alpha * std::sqrt(U2 / (1.0f - U2));
+        const glm::vec3 N = glm::normalize(glm::vec3(r * std::cos(phi), r * std::sin(phi), 1.0f));
         const glm::vec3 L = -V + 2.0f * N * dot(N, V);
         return L;
     }
@@ -54,7 +51,7 @@ private:
     float lambda(const float alpha, const float cosTheta) const
     {
         const float a = 1.0f / alpha / std::tan(std::acos(cosTheta));
-        return (cosTheta < 1.0f) ? 0.5f * (-1.0f + std::sqrt(1.0f + 1.0f/a/a)) : 0.0f;    
+        return (cosTheta < 1.0f) ? 0.5f * (-1.0f + std::sqrt(1.0f + 1.0f / a / a)) : 0.0f;
     }
 };
 

@@ -13,7 +13,7 @@ void writeTabC(glm::mat3* tab, glm::vec2* tabMagFresnel, int N)
          << std::endl;
 
     file << "static const mat33 tabM[size*size] = {" << std::endl;
-    for (int t = 0; t < N; ++t)
+    for (int t = 0; t < N; ++t) {
         for (int a = 0; a < N; ++a) {
             file << "{";
             file << tab[a + t * N][0][0] << ", " << tab[a + t * N][0][1] << ", " << tab[a + t * N][0][2] << ", ";
@@ -23,11 +23,12 @@ void writeTabC(glm::mat3* tab, glm::vec2* tabMagFresnel, int N)
                 file << ", ";
             file << std::endl;
         }
+    }
     file << "};" << std::endl
          << std::endl;
 
     file << "static const mat33 tabMinv[size*size] = {" << std::endl;
-    for (int t = 0; t < N; ++t)
+    for (int t = 0; t < N; ++t) {
         for (int a = 0; a < N; ++a) {
             glm::mat3 Minv = glm::inverse(tab[a + t * N]);
 
@@ -39,17 +40,19 @@ void writeTabC(glm::mat3* tab, glm::vec2* tabMagFresnel, int N)
                 file << ", ";
             file << std::endl;
         }
+    }
     file << "};" << std::endl
          << std::endl;
 
     file << "static const float tabMagnitude[size*size] = {" << std::endl;
-    for (int t = 0; t < N; ++t)
+    for (int t = 0; t < N; ++t) {
         for (int a = 0; a < N; ++a) {
             file << tabMagFresnel[a + t * N][0] << "f";
             if (a != N - 1 || t != N - 1)
                 file << ", ";
             file << std::endl;
         }
+    }
     file << "};" << std::endl;
 
     file.close();
@@ -66,12 +69,13 @@ void writeTabMatlab(glm::mat3* tab, glm::vec2* tabMagFresnel, int N)
     file << " " << N << " " << N << std::endl;
 
     for (int t = 0; t < N; ++t) {
-        for (int a = 0; a < N; ++a)
+        for (int a = 0; a < N; ++a) {
             file << tabMagFresnel[a + t * N][0] << " ";
+        }
         file << std::endl;
     }
 
-    for (int row = 0; row < 3; ++row)
+    for (int row = 0; row < 3; ++row) {
         for (int column = 0; column < 3; ++column) {
 
             file << "# name: tab" << column << row << std::endl;
@@ -87,6 +91,7 @@ void writeTabMatlab(glm::mat3* tab, glm::vec2* tabMagFresnel, int N)
 
             file << std::endl;
         }
+    }
 
     file.close();
 }
@@ -101,8 +106,9 @@ void writeDDS(const char* path, float* data, int N)
 
     uint16_t* half = new uint16_t[numTerms];
 
-    for (int i = 0; i < numTerms; ++i)
+    for (int i = 0; i < numTerms; ++i) {
         half[i] = float_to_half_fast(data[i]);
+    }
 
     SaveDDS(path, DDS_FORMAT_R16G16B16A16_FLOAT, sizeof(uint16_t) * 4, N, N, (void const*)half);
 

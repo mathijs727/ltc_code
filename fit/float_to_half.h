@@ -3,8 +3,7 @@
 // Adapted from:
 // https://gist.github.com/rygorous/2156668
 
-union FP32
-{
+union FP32 {
     uint32_t u;
     float f;
     struct
@@ -15,8 +14,7 @@ union FP32
     };
 };
 
-union FP16
-{
+union FP16 {
     uint16_t u;
     struct
     {
@@ -38,8 +36,7 @@ static uint16_t float_to_half_fast(float x)
     {
         o.Exponent = 31;
         o.Mantissa = f.Mantissa ? 0x200 : 0; // NaN->qNaN and Inf->Inf
-    }
-    else // Normalized number
+    } else // Normalized number
     {
         // Exponent unbias the single, then bias the halfp
         int newexp = f.Exponent - 127 + 15;
@@ -54,9 +51,7 @@ static uint16_t float_to_half_fast(float x)
                 if ((mant >> (13 - newexp)) & 1) // Check for rounding
                     o.u++; // Round, might overflow into exp bit, but this is OK
             }
-        }
-        else
-        {
+        } else {
             o.Exponent = newexp;
             o.Mantissa = f.Mantissa >> 13;
             if (f.Mantissa & 0x1000) // Check for rounding
