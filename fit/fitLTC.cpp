@@ -9,17 +9,18 @@
 #include "nelder_mead.h"
 #include "plot.h"
 #include <algorithm>
-#include <atomic>
+#include <array>
 #include <cmath>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <tbb/blocked_range2d.h>
+#include <tbb/blocked_range.h>
+#include <tbb/concurrent_unordered_set.h>
 #include <tbb/parallel_for.h>
 #include <vector>
 
 // size of precomputed table (theta, alpha)
-const int N = 64;
+constexpr int N = 64;
 // number of samples used to compute the error during fitting
 const int Nsample = 32;
 // minimal roughness (avoid singularities)
@@ -189,108 +190,188 @@ void fit(LTC& ltc, const Brdf& brdf, const glm::vec3& V, const float alpha, cons
 // fit data
 void fitTab(glm::mat3* tab, glm::vec2* tabMagFresnel, const int N, const Brdf& brdf)
 {
+    const auto alphaIteration = [&](int a, int startT, int endT) {
+        // NOTE(Mathijs): This should NOT be moved into the inner loop because it uses values from the previous iterations.
+        LTC ltc;
 
-#if PARALLEL
-    std::atomic_int progress { 0 };
-    const tbb::blocked_range2d<int> globalRange { 0, N, 0, N };
+        for (int t = startT; t < endT; ++t) {
+            // parameterized by sqrt(1 - cos(theta))
+            float x = t / float(N - 1);
+            float ct = 1.0f - x * x;
+            float theta = std::min<float>(1.57f, std::acos(ct)); // 1.57 ~= pi/2
+            const glm::vec3 V = glm::vec3(std::sin(theta), 0, std::cos(theta));
+
+            // alpha = roughness^2
+            float roughness = a / float(N - 1);
+            float alpha = std::max<float>(roughness * roughness, MIN_ALPHA);
+
+            glm::vec3 averageDir;
+            computeAvgTerms(brdf, V, alpha, ltc.magnitude, ltc.fresnel, averageDir);
+
+            bool isotropic;
+
+            // 1. first guess for the fit
+            // init the hemisphere in which the distribution is fitted
+            // if theta == 0 the lobe is rotationally symmetric and aligned with Z = (0 0 1)
+            if (t == 0) {
+                ltc.X = glm::vec3(1, 0, 0);
+                ltc.Y = glm::vec3(0, 1, 0);
+                ltc.Z = glm::vec3(0, 0, 1);
+
+                if (a == N - 1) { // roughness = 1
+                    ltc.m11 = 1.0f;
+                    ltc.m22 = 1.0f;
+                } else { // init with roughness of previous fit
+                    ltc.m11 = tab[a + 1 + t * N][0][0];
+                    ltc.m22 = tab[a + 1 + t * N][1][1];
+                }
+
+                ltc.m13 = 0;
+                ltc.update();
+
+                isotropic = true;
+            } else { // otherwise use previous configuration as first guess
+                glm::vec3 L = averageDir;
+                glm::vec3 T1(L.z, 0, -L.x);
+                glm::vec3 T2(0, 1, 0);
+                ltc.X = T1;
+                ltc.Y = T2;
+                ltc.Z = L;
+
+                ltc.update();
+
+                isotropic = false;
+            }
+
+            // 2. fit (explore parameter space and refine first guess)
+            float epsilon = 0.05f;
+            fit(ltc, brdf, V, alpha, epsilon, isotropic);
+
+            // copy data
+            const auto idx = a + t * N;
+            tab[idx] = ltc.M;
+            tabMagFresnel[idx][0] = ltc.magnitude;
+            tabMagFresnel[idx][1] = ltc.fresnel;
+
+            // kill useless coefs in matrix
+            tab[idx][0][1] = 0;
+            tab[idx][1][0] = 0;
+            tab[idx][2][1] = 0;
+            tab[idx][1][2] = 0;
+        }
+    };
+
+    // Initialize the first column (theta) of the table on a single thread.
+    std::cout << "Initial scalar phase" << std::endl;
+    for (int a = N - 1; a >= 0; --a) {
+        alphaIteration(a, 0, 1);
+    }
+
+    // Process the rows (alpha) in parallel after the first column has been initialized.
+    // This reads from the first column of the previous row, hence the need for the initial sequential pass:
+    // ltc.m11 = tab[a + 1 + t * N][0][0];
+    // ltc.m22 = tab[a + 1 + t * N][1][1];
+    std::cout << "Main parallel phase" << std::endl;
+    const tbb::blocked_range<int> globalRange { 0, N };
     tbb::parallel_for(
         globalRange,
-        [&](tbb::blocked_range2d<int> localRange) {
-            for (int a = localRange.rows().begin(); a < localRange.rows().end(); a++) {
-                for (int t = localRange.cols().begin(); t < localRange.cols().end(); t++) {
-#else
+        [&](tbb::blocked_range<int> localRange) {
+            const int range = localRange.end() - localRange.begin();
+            for (int a = localRange.begin(); a < localRange.end(); ++a) {
+                alphaIteration(a, 0, N);
+            }
+        });
+    for (int a = N - 1; a >= 0; --a) {
+        //alphaIteration(a, 0, N);
+    }
+}
+
+// fit data
+void fitTabOrig(glm::mat3* tab, glm::vec2* tabMagFresnel, const int N, const Brdf& brdf)
+{
     // loop over theta and alpha
     for (int a = N - 1; a >= 0; --a) {
+        LTC ltc;
+        // NOTE(Mathijs): This should NOT be moved into the inner loop because it uses values from the previous iterations.
+
         for (int t = 0; t <= N - 1; ++t) {
-#endif
-                    // parameterized by sqrt(1 - cos(theta))
-                    float x = t / float(N - 1);
-                    float ct = 1.0f - x * x;
-                    float theta = std::min<float>(1.57f, std::acos(ct)); // 1.57 ~= pi/2
-                    const glm::vec3 V = glm::vec3(std::sin(theta), 0, std::cos(theta));
+            // parameterized by sqrt(1 - cos(theta))
+            float x = t / float(N - 1);
+            float ct = 1.0f - x * x;
+            float theta = std::min<float>(1.57f, std::acos(ct)); // 1.57 ~= pi/2
+            const glm::vec3 V = glm::vec3(std::sin(theta), 0, std::cos(theta));
 
-                    // alpha = roughness^2
-                    float roughness = a / float(N - 1);
-                    float alpha = std::max<float>(roughness * roughness, MIN_ALPHA);
+            // alpha = roughness^2
+            float roughness = a / float(N - 1);
+            float alpha = std::max<float>(roughness * roughness, MIN_ALPHA);
 
-#if PARALLEL
-                    const int currentProgress = progress.fetch_add(1);
-                    std::cout << (currentProgress / float(N * N) * 100.0f) << "%\n";
-#else
             std::cout << "a = " << a << "\t t = " << t << std::endl;
             std::cout << "alpha = " << alpha << "\t theta = " << theta << std::endl;
             std::cout << std::endl;
-#endif
 
-                    LTC ltc;
-                    glm::vec3 averageDir;
-                    computeAvgTerms(brdf, V, alpha, ltc.magnitude, ltc.fresnel, averageDir);
+            glm::vec3 averageDir;
+            computeAvgTerms(brdf, V, alpha, ltc.magnitude, ltc.fresnel, averageDir);
 
-                    bool isotropic;
+            bool isotropic;
 
-                    // 1. first guess for the fit
-                    // init the hemisphere in which the distribution is fitted
-                    // if theta == 0 the lobe is rotationally symmetric and aligned with Z = (0 0 1)
-                    if (t == 0) {
-                        ltc.X = glm::vec3(1, 0, 0);
-                        ltc.Y = glm::vec3(0, 1, 0);
-                        ltc.Z = glm::vec3(0, 0, 1);
+            // 1. first guess for the fit
+            // init the hemisphere in which the distribution is fitted
+            // if theta == 0 the lobe is rotationally symmetric and aligned with Z = (0 0 1)
+            if (t == 0) {
+                ltc.X = glm::vec3(1, 0, 0);
+                ltc.Y = glm::vec3(0, 1, 0);
+                ltc.Z = glm::vec3(0, 0, 1);
 
-                        if (a == N - 1) // roughness = 1
-                        {
-                            ltc.m11 = 1.0f;
-                            ltc.m22 = 1.0f;
-                        } else // init with roughness of previous fit
-                        {
-                            ltc.m11 = tab[a + 1 + t * N][0][0];
-                            ltc.m22 = tab[a + 1 + t * N][1][1];
-                        }
-
-                        ltc.m13 = 0;
-                        ltc.update();
-
-                        isotropic = true;
-                    }
-                    // otherwise use previous configuration as first guess
-                    else {
-                        glm::vec3 L = averageDir;
-                        glm::vec3 T1(L.z, 0, -L.x);
-                        glm::vec3 T2(0, 1, 0);
-                        ltc.X = T1;
-                        ltc.Y = T2;
-                        ltc.Z = L;
-
-                        ltc.update();
-
-                        isotropic = false;
-                    }
-
-                    // 2. fit (explore parameter space and refine first guess)
-                    float epsilon = 0.05f;
-                    fit(ltc, brdf, V, alpha, epsilon, isotropic);
-
-                    // copy data
-                    tab[a + t * N] = ltc.M;
-                    tabMagFresnel[a + t * N][0] = ltc.magnitude;
-                    tabMagFresnel[a + t * N][1] = ltc.fresnel;
-
-                    // kill useless coefs in matrix
-                    tab[a + t * N][0][1] = 0;
-                    tab[a + t * N][1][0] = 0;
-                    tab[a + t * N][2][1] = 0;
-                    tab[a + t * N][1][2] = 0;
-
-#if !PARALLEL
-                    std::cout << tab[a + t * N][0][0] << "\t " << tab[a + t * N][1][0] << "\t " << tab[a + t * N][2][0] << std::endl;
-                    std::cout << tab[a + t * N][0][1] << "\t " << tab[a + t * N][1][1] << "\t " << tab[a + t * N][2][1] << std::endl;
-                    std::cout << tab[a + t * N][0][2] << "\t " << tab[a + t * N][1][2] << "\t " << tab[a + t * N][2][2] << std::endl;
-                    std::cout << std::endl;
-#endif
+                if (a == N - 1) // roughness = 1
+                {
+                    ltc.m11 = 1.0f;
+                    ltc.m22 = 1.0f;
+                } else { // init with roughness of previous fit
+                    ltc.m11 = tab[a + 1 + t * N][0][0];
+                    ltc.m22 = tab[a + 1 + t * N][1][1];
                 }
+
+                ltc.m13 = 0;
+                ltc.update();
+
+                isotropic = true;
             }
-#if PARALLEL
-        });
-#endif
+            // otherwise use previous configuration as first guess
+            else {
+                glm::vec3 L = averageDir;
+                glm::vec3 T1(L.z, 0, -L.x);
+                glm::vec3 T2(0, 1, 0);
+                ltc.X = T1;
+                ltc.Y = T2;
+                ltc.Z = L;
+
+                ltc.update();
+
+                isotropic = false;
+            }
+
+            // 2. fit (explore parameter space and refine first guess)
+            float epsilon = 0.05f;
+            fit(ltc, brdf, V, alpha, epsilon, isotropic);
+
+            // copy data
+            const auto idx = a + t * N;
+            tab[idx] = ltc.M;
+            tabMagFresnel[idx][0] = ltc.magnitude;
+            tabMagFresnel[idx][1] = ltc.fresnel;
+
+            // kill useless coefs in matrix
+            tab[idx][0][1] = 0;
+            tab[idx][1][0] = 0;
+            tab[idx][2][1] = 0;
+            tab[idx][1][2] = 0;
+
+            std::cout << tab[a + t * N][0][0] << "\t " << tab[a + t * N][1][0] << "\t " << tab[a + t * N][2][0] << std::endl;
+            std::cout << tab[a + t * N][0][1] << "\t " << tab[a + t * N][1][1] << "\t " << tab[a + t * N][2][1] << std::endl;
+            std::cout << tab[a + t * N][0][2] << "\t " << tab[a + t * N][1][2] << "\t " << tab[a + t * N][2][2] << std::endl;
+            std::cout << std::endl;
+        }
+    }
 }
 
 float sqr(float x)
@@ -402,8 +483,12 @@ int main(int argc, char* argv[])
     std::vector<glm::vec2> tabMagFresnel(N * N);
     std::vector<float> tabSphere(N * N);
 
-    // fit
+// fit
+#if PARALLEL
     fitTab(tab.data(), tabMagFresnel.data(), N, brdf);
+#else
+    fitTabOrig(tab.data(), tabMagFresnel.data(), N, brdf);
+#endif
 
     // projected solid angle of a spherical cap, clipped to the horizon
     genSphereTab(tabSphere.data(), N);
