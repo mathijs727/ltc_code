@@ -2,12 +2,10 @@
 #define _PLOT_
 
 #include <glm/glm.hpp>
-using namespace glm;
+#include <CImg.h>
 
-#include "CImg.h"
-using namespace cimg_library;
 
-CImg<float> colorMap(33, 1, 1, 3);
+cimg_library::CImg<float> colorMap(33, 1, 1, 3);
 
 const unsigned char colorMap_data[33*3]  =
 {
@@ -55,14 +53,14 @@ public:
     BrdfOrLTC(
         const LTC* ltc_,
         const Brdf* brdf_,
-        const vec3 V_ = vec3(0, 0, 1),
+        const glm::vec3 V_ = glm::vec3(0, 0, 1),
         const float alpha_ = 1.0f) :
         ltc(ltc_), brdf(brdf_), V(V_), alpha(alpha_)
     {
         isBrdf = brdf != nullptr;
     }
 
-    float eval(const vec3& L) const
+    float eval(const glm::vec3& L) const
     {
         if (isBrdf)
         {
@@ -73,7 +71,7 @@ public:
             return ltc->eval(L);
     }
 
-    vec3 sample(const float U1, const float U2) const
+    glm::vec3 sample(const float U1, const float U2) const
     {
         return isBrdf ? brdf->sample(V, alpha, U1, U2) : ltc->sample(U1, U2);
     }
@@ -96,7 +94,7 @@ public:
 
     bool isBrdf;
     const Brdf* brdf;
-    const vec3 V;
+    const glm::vec3 V;
     const float alpha;
     const LTC* ltc;
 };
@@ -108,13 +106,13 @@ void spherical_plot(const BrdfOrLTC& brdforltc, const char* filename)
 {
     // image
     const int image_size = 256;
-    CImg<float> image(image_size, image_size, 1, 3);
+    cimg_library::CImg<float> image(image_size, image_size, 1, 3);
 
     // camera
-    vec3 Z = normalize(vec3(-1, 1, 1));
-    vec3 X = normalize(vec3( 1, 1, 0));
-    X = normalize(X - Z*dot(X,Z));
-    vec3 Y = -cross(X,Z);
+    glm::vec3 Z = glm::normalize(glm::vec3(-1, 1, 1));
+    glm::vec3 X = glm::normalize(glm::vec3( 1, 1, 0));
+    X = glm::normalize(X - Z*dot(X,Z));
+    glm::vec3 Y = -cross(X,Z);
 
     // maximum value of the function (color map scaling)
     float max_value = brdforltc.computeMaxValue();
@@ -133,8 +131,8 @@ void spherical_plot(const BrdfOrLTC& brdforltc, const char* filename)
             image(i, j, 0, 2) = 255.0f;
             continue;
         }
-        const float z = sqrtf(1.0f - x*x - y*y);
-        vec3 L = x*X + y*Y + z*Z;
+        const float z = std::sqrt(1.0f - x*x - y*y);
+        glm::vec3 L = x*X + y*Y + z*Z;
 
         // evaluate function
         float value = brdforltc.eval(L) / max_value;
@@ -151,7 +149,7 @@ void spherical_plot(const BrdfOrLTC& brdforltc, const char* filename)
 #include <sstream>
 #include <iomanip>
 
-void make_spherical_plots(const Brdf& brdf, const mat3* tab, const int N)
+void make_spherical_plots(const Brdf& brdf, const glm::mat3* tab, const int N)
 {
     // init color map texture (for linear interpolation)
     for(int i = 0; i < 33; ++i)
@@ -162,7 +160,7 @@ void make_spherical_plots(const Brdf& brdf, const mat3* tab, const int N)
     }
 
     // fill LTC matrices in texture (for linear interpolation)
-    CImg<float> LTC_matrices(N, N, 1, 9);
+    cimg_library::CImg<float> LTC_matrices(N, N, 1, 9);
     for(int j = 0; j < N; ++j)
     for(int i = 0; i < N; ++i)
     {
@@ -186,12 +184,12 @@ void make_spherical_plots(const Brdf& brdf, const mat3* tab, const int N)
         // configuration
         const float alpha = alpha_tab[a];
         const float theta = theta_tab[t] * 3.14159f/180.0f;
-        const vec3 V(sinf(theta), 0.0f, cosf(theta));
+        const glm::vec3 V(std::sin(theta), 0.0f, std::cos(theta));
 
-        // fetch texture with parameterization = [(sqrtf(alpha), sqrt(1 - cosf(theta))]
-        float x = sqrtf(alpha)*(LTC_matrices.width() - 1.0f);
-        float y = sqrtf(1.0f - V.z)*(LTC_matrices.height() - 1.0f);
-        mat3 M = mat3(
+        // fetch texture with parameterization = [(std::sqrt(alpha), sqrt(1 - std::cos(theta))]
+        float x = std::sqrt(alpha)*(LTC_matrices.width() - 1.0f);
+        float y = std::sqrt(1.0f - V.z)*(LTC_matrices.height() - 1.0f);
+        glm::mat3 M = glm::mat3(
                     LTC_matrices.linear_atXY(x, y, 0, 0),
                     LTC_matrices.linear_atXY(x, y, 0, 1),
                     LTC_matrices.linear_atXY(x, y, 0, 2),
