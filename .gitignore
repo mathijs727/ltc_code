@@ -45,3 +45,4 @@ Makefile
 bin
 obj
 out
+CMakeSettings.json
