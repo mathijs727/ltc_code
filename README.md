@@ -1,3 +1,14 @@
+# Linearly Transformed Cosines
+This is a fork of the original [LTC code base by selfshadow](https://github.com/selfshadow/ltc_code/). It has various improvements which include:
+* CMake build system (install dependencies using vcpkg)
+* Split fitting code into library + executable to make it easier to integrate in another project.
+* Parallel fitting code for significantly improved fitting speed.
+* Modernize code base in a few places (definitely more work to be done)
+  * No more `new`/`delete` (replaced by `std::vector`)
+  * Replace C math calls by their C++ equivalent (e.g. `std::sqrt` instead of `sqrtf`)
+  * No more `using namespace`
+  * Added all code to `ltc` namespace
+
 ## Overview
 This repository contains an (evolving) reference implementation for the following publications:
 * [Real-Time Polygonal-Light Shading with Linearly Transformed Cosines](https://eheitzresearch.wordpress.com/415-2/) (2016)
