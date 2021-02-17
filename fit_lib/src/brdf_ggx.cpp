@@ -1,4 +1,4 @@
-#include "brdf_ggx.h"
+#include "ltc/brdf_ggx.h"
 #include <cmath>
 #include <glm/geometric.hpp>
 

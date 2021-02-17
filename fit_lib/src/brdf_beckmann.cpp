@@ -1,4 +1,4 @@
-#include "brdf_beckmann.h"
+#include "ltc/brdf_beckmann.h"
 #include <cmath>
 #include <glm/geometric.hpp>
 

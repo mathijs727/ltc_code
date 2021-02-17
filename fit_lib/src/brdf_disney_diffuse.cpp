@@ -1,4 +1,4 @@
-#include "brdf_disney_diffuse.h"
+#include "ltc/brdf_disney_diffuse.h"
 #include <cmath>
 #include <glm/geometric.hpp>
 

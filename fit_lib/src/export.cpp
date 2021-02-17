@@ -1,5 +1,5 @@
 #pragma once
-#include "export.h"
+#include "ltc/export.h"
 // export data to DDS
 #include "dds.h"
 #include "float_to_half.h"

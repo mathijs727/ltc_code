@@ -1,13 +1,15 @@
 #pragma once
-#include "plot.h"
+#include "ltc/plot.h"
 #include "LTC.h"
-#include "brdf.h"
+#include "ltc/brdf.h"
 #include <CImg.h>
 #include <cmath>
 #include <glm/geometric.hpp>
 #include <glm/vec3.hpp>
 #include <iomanip>
 #include <sstream>
+// NOTE(Mathijs): replace by C++20 format when it is more widely supported.
+#include <fmt/format.h>
 
 namespace ltc {
 
@@ -103,7 +105,7 @@ public:
 // raytrace a sphere
 // evaluate the BRDF or the LTC
 // call the color map
-void spherical_plot(const BrdfOrLTC& brdforltc, const char* filename)
+void spherical_plot(const BrdfOrLTC& brdforltc, const std::filesystem::path& savePath)
 {
     // image
     const int image_size = 256;
@@ -142,10 +144,13 @@ void spherical_plot(const BrdfOrLTC& brdforltc, const char* filename)
             image(i, j, 0, 2) = colorMap.linear_atX(value * (colorMap.width() - 1.0f), 0, 0, 2);
         }
 
-    image.save(filename);
+    const std::string savePathString = savePath.string();
+    image.save(savePathString.c_str());
 }
 
-void make_spherical_plots(const Brdf& brdf, const glm::mat3* tab, const int N)
+void make_spherical_plots(
+    const Brdf& brdf, const glm::mat3* tab, const int N,
+    const std::filesystem::path& outFolder)
 {
     // init color map texture (for linear interpolation)
     for (int i = 0; i < 33; ++i) {
@@ -199,27 +204,14 @@ void make_spherical_plots(const Brdf& brdf, const glm::mat3* tab, const int N)
             ltc.invM = inverse(M);
             ltc.detM = abs(glm::determinant(M));
 
-            // filename LTC
-            std::stringstream filename_ltc;
-            filename_ltc << "plots/";
-            filename_ltc << "alpha_";
-            filename_ltc << std::setfill('0') << std::setw(3) << (int)(100.0f * alpha_tab[a]);
-            filename_ltc << "_theta_";
-            filename_ltc << std::setfill('0') << std::setw(2) << (int)theta_tab[t] << "_ltc.bmp";
-
-            // filename BRDF
-            std::stringstream filename_brdf;
-            filename_brdf << "plots/";
-            filename_brdf << "alpha_";
-            filename_brdf << std::setfill('0') << std::setw(3) << (int)(100.0f * alpha_tab[a]);
-            filename_brdf << "_theta_";
-            filename_brdf << std::setfill('0') << std::setw(2) << (int)theta_tab[t] << "_brdf.bmp";
+            const auto filePathLTC = outFolder / fmt::format("alpha_{:03}_theta_{:02}_ltc.bmp", (int)(alpha_tab[a] * 100.0f), (int)theta_tab[t]);
+            const auto filePathBRDF = outFolder / fmt::format("alpha_{:03}_theta_{:02}_brdf.bmp", (int)(alpha_tab[a] * 100.0f), (int)theta_tab[t]);
 
             // plot LTC
-            spherical_plot(BrdfOrLTC(&ltc, NULL), filename_ltc.str().c_str());
+            spherical_plot(BrdfOrLTC(&ltc, NULL), filePathLTC);
 
             // plot BRDF
-            spherical_plot(BrdfOrLTC(NULL, &brdf, V, alpha), filename_brdf.str().c_str());
+            spherical_plot(BrdfOrLTC(NULL, &brdf, V, alpha), filePathBRDF);
         }
 }
 
