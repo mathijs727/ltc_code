@@ -21,7 +21,7 @@
 // number of samples used to compute the error during fitting
 constexpr int Nsample = 32;
 // minimal roughness (avoid singularities)
-constexpr float MIN_ALPHA = 0.00001f;
+constexpr float MIN_ALPHA = 0.0005f;
 
 const float pi = std::acos(-1.0f);
 
@@ -299,7 +299,7 @@ void fitTabOrig(glm::mat3* tab, glm::vec2* tabMagFresnel, const int N, const Brd
             const glm::vec3 V = glm::vec3(std::sin(theta), 0, std::cos(theta));
 
             // alpha = roughness^2
-            float roughness = a / float(N - 1);
+            float roughness = a / float(N - 1); // Linear roughness
             float alpha = std::max<float>(roughness * roughness, MIN_ALPHA);
 
             std::cout << "a = " << a << "\t t = " << t << std::endl;
