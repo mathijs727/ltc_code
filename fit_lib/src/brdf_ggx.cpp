@@ -29,6 +29,9 @@ float BrdfGGX::eval(const glm::vec3& V, const glm::vec3& L, const float alpha, f
         G2 = 1.0f / (1.0f + LambdaV + LambdaL);
     }
 
+    // NOTE(Mathijs): seems to match (anisotropic) GGX implementation from PBRT:
+    // http://www.pbr-book.org/3ed-2018/Reflection_Models/Microfacet_Models.html
+    //
     // D
     const glm::vec3 H = glm::normalize(V + L);
     const float slopex = H.x / H.z;
