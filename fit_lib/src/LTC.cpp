@@ -1,4 +1,3 @@
-#pragma once
 #include "LTC.h"
 #include <cmath>
 #include <glm/common.hpp>
