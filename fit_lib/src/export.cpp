@@ -1,4 +1,3 @@
-#pragma once
 #include "ltc/export.h"
 // export data to DDS
 #include "dds.h"

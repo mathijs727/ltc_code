@@ -5,6 +5,8 @@ namespace ltc {
 
 class Brdf {
 public:
+    virtual ~Brdf() = default;
+
     // evaluation of the cosine-weighted BRDF
     // pdf is set to the PDF of sampling L
     virtual float eval(const glm::vec3& V, const glm::vec3& L, const float alpha, float& pdf) const = 0;

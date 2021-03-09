@@ -1,4 +1,3 @@
-#pragma once
 #include "ltc/plot.h"
 #include "LTC.h"
 #include "ltc/brdf.h"
