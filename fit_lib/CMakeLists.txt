@@ -22,6 +22,6 @@ add_library(LTCFitLib
 )
 target_include_directories(LTCFitLib PUBLIC "include" PRIVATE "src")
 target_link_libraries(LTCFitLib
-	PUBLIC glm CImg::CImg
+	PUBLIC glm::glm CImg::CImg
 	PRIVATE TBB::tbb fmt::fmt)
 target_compile_features(LTCFitLib PUBLIC cxx_std_20)
