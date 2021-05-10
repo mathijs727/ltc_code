@@ -1,0 +1,11 @@
+{
+  "name": "dx12-render",
+  "version": "0.0.1",
+  "dependencies": [
+    "cimg",
+    "glm",
+    "fmt",
+    "tbb"
+  ],
+  "builtin-baseline": "abcc05fde5fc85e4df4d73c9ea44c47a031a1914"
+}

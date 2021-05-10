@@ -1,6 +1,7 @@
 # Linearly Transformed Cosines
 This is a fork of the original [LTC code base by selfshadow](https://github.com/selfshadow/ltc_code/). It has various improvements which include:
-* CMake build system (install dependencies using vcpkg)
+* CMake build system
+* Dependency management using [vcpkg](https://github.com/microsoft/vcpkg)
 * Split fitting code into library + executable to make it easier to integrate in another project.
 * Parallel fitting code for significantly improved fitting speed.
 * Modernize code base in a few places (definitely more work to be done)
