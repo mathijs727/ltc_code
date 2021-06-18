@@ -1,4 +1,4 @@
-add_executable(LTCFitApp
+add_executable(ltc_app
 	"src/main.cpp"
 )
-target_link_libraries(LTCFitApp PRIVATE LTCFitLib)
+target_link_libraries(ltc_app PRIVATE ltc)

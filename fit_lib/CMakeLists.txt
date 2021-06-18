@@ -1,15 +1,4 @@
-add_library(LTCFitLib 
-	"include/ltc/brdf.h"
-	"include/ltc/brdf_beckmann.h"
-	"include/ltc/brdf_disney_diffuse.h"
-	"include/ltc/brdf_ggx.h"
-	"src/dds.h"
-	"include/ltc/export.h"
-	"src/float_to_half.h"
-	"src/LTC.h"
-	"src/nelder_mead.h"
-	"include/ltc/plot.h"
-
+add_library(ltc 
 	"src/brdf_beckmann.cpp"
 	"src/brdf_disney_diffuse.cpp"
 	"src/brdf_ggx.cpp"
@@ -20,8 +9,14 @@ add_library(LTCFitLib
 	"src/LTC.cpp"
 	"src/plot.cpp"
 )
-target_include_directories(LTCFitLib PUBLIC "include" PRIVATE "src")
-target_link_libraries(LTCFitLib
+target_include_directories(
+    ltc
+	PRIVATE
+		${CMAKE_CURRENT_SOURCE_DIR}/src
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>)
+target_link_libraries(ltc
 	PUBLIC glm::glm CImg::CImg
 	PRIVATE TBB::tbb fmt::fmt)
-target_compile_features(LTCFitLib PUBLIC cxx_std_20)
+target_compile_features(ltc PUBLIC cxx_std_20)
